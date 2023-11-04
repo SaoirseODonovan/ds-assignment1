@@ -29,6 +29,13 @@ export class RestAPIStack extends cdk.Stack {
       tableName: "MovieCast",
     });
 
+    const movieReviewsTable = new dynamodb.Table(this, "MovieReviewsTable", {
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      partitionKey: { name: "reviewId", type: dynamodb.AttributeType.NUMBER },
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      tableName: "MovieReviews",
+    });
+
     movieCastsTable.addLocalSecondaryIndex({
       indexName: "roleIx",
       sortKey: { name: "roleName", type: dynamodb.AttributeType.STRING },
@@ -84,6 +91,22 @@ export class RestAPIStack extends cdk.Stack {
           }
         );
 
+        const addMovieReviewsFn = new lambdanode.NodejsFunction(
+          this,
+          "AddMovieReviewsFn",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/addMovieReviews.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: movieReviewsTable.tableName,
+              REGION: "eu-west-1",
+            },
+          }
+        );
+
         new custom.AwsCustomResource(this, "moviesddbInitData", {
           onCreate: {
             service: "DynamoDB",
@@ -132,6 +155,7 @@ export class RestAPIStack extends cdk.Stack {
         moviesTable.grantReadWriteData(deleteMovieFn)
         movieCastsTable.grantReadData(getMovieCastMembersFn);
         movieCastsTable.grantReadWriteData(getMovieByIdFn)
+        movieReviewsTable.grantReadWriteData(addMovieReviewsFn)
 
             // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
@@ -172,6 +196,12 @@ export class RestAPIStack extends cdk.Stack {
     movieCastEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getMovieCastMembersFn, { proxy: true })
+    );
+
+    const movieReviewsEndpoint = movieEndpoint.addResource("reviews");
+    movieReviewsEndpoint.addMethod(
+      "POST",
+      new apig.LambdaIntegration(addMovieReviewsFn, { proxy: true })
     );
         
         
