@@ -1,4 +1,3 @@
-
 export type Movie = {
     movieId: number;
     genre_ids: number[];
@@ -23,4 +22,11 @@ export type MovieCastMemberQueryParams = {
     movieId: string;
     actorName?: string;
     roleName?: string
-  }
+  };
+
+export type MovieReview = {
+    reviewId: number;
+    movieId: number;
+    rating: number;
+    reviewText: string;
+}
