@@ -84,27 +84,31 @@ export const movieCasts: MovieCast[] = [
 
 export const movieReviews: MovieReview[] = [
   {
-    reviewId: 1,
     movieId: 1234,
+    reviewerName: "Saoirse O'Donovan",
+    reviewDate: "2023-10-20",
     rating: 5,
-    reviewText: "Great movie!"
+    content: "Great movie!"
   },
   {
-    reviewId: 2,
     movieId: 2345,
+    reviewerName: "Sam Jones",
+    reviewDate: "2021-12-15",
     rating: 3,
-    reviewText: "Movie was okay.."
+    content: "Movie was okay.."
   },
   {
-    reviewId: 3,
     movieId: 3456,
+    reviewerName: "Joe Bloggs",
+    reviewDate: "2022-10-17",
     rating: 4,
-    reviewText: "Loved it, a bit long though!"
+    content: "Loved it, a bit long though!"
   },
   {
-    reviewId: 4,
     movieId: 4567,
+    reviewerName: "Caoimhe Keane",
+    reviewDate: "2020-11-14",
     rating: 1,
-    reviewText: "Would not watch again."
+    content: "Would not watch again."
   }
 ];
