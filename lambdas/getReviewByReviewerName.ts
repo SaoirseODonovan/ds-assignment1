@@ -9,7 +9,7 @@ export const handler: APIGatewayProxyHandlerV2 = async (event, context) => {
     console.log("Event: ", event);
     
 const movieId = parseInt(event?.pathParameters?.movieId ?? "");
-const reviewerName = event?.queryStringParameters?.reviewerName;
+const reviewerName = event?.pathParameters?.reviewerName;
 
 if (!movieId || !reviewerName) {
   return {

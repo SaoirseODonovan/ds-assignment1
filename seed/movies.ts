@@ -85,7 +85,7 @@ export const movieCasts: MovieCast[] = [
 export const movieReviews: MovieReview[] = [
   {
     movieId: 1234,
-    reviewerName: "Saoirse O'Donovan",
+    reviewerName: "Saoirse Donovan",
     reviewDate: "2023-10-20",
     rating: 5,
     content: "Great movie!"
