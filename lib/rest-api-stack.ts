@@ -8,10 +8,42 @@ import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import { movies, movieReviews} from "../seed/movies";
+// import { Aws } from "aws-cdk-lib";
+// import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+
+// type AppApiProps = {
+//   userPoolId: string;
+//   userPoolClientId: string;
+// };
+
+// export class RestAPIStack extends Construct {
+//   constructor(scope: Construct, id: string, props: AppApiProps) {
+//     super(scope, id);
 
 export class RestAPIStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // const appApi = new apig.RestApi(this, "AppApi", {
+    //   description: "App RestApi",
+    //   endpointTypes: [apig.EndpointType.REGIONAL],
+    //   defaultCorsPreflightOptions: {
+    //     allowOrigins: apig.Cors.ALL_ORIGINS,
+    //   },
+    // });
+
+    // const appCommonFnProps = {
+    //   architecture: lambda.Architecture.ARM_64,
+    //   timeout: cdk.Duration.seconds(10),
+    //   memorySize: 128,
+    //   runtime: lambda.Runtime.NODEJS_16_X,
+    //   handler: "handler",
+    //   environment: {
+    //     USER_POOL_ID: props.userPoolId,
+    //     CLIENT_ID: props.userPoolClientId,
+    //     REGION: cdk.Aws.REGION,
+    //   },
+    // };
 
     // Tables 
     const moviesTable = new dynamodb.Table(this, "MoviesTable", {
@@ -216,6 +248,21 @@ export class RestAPIStack extends cdk.Stack {
       new apig.LambdaIntegration(getAllMoviesFn, { proxy: true })
     );
 
+    // const authorizerFn = new node.NodejsFunction(this, "AuthorizerFn", {
+    //   ...appCommonFnProps,
+    //   entry: "./lambdas/auth/authorizer.ts",
+    // });
+
+    // const requestAuthorizer = new apig.RequestAuthorizer(
+    //   this,
+    //   "RequestAuthorizer",
+    //   {
+    //     identitySources: [apig.IdentitySource.header("cookie")],
+    //     handler: authorizerFn,
+    //     resultsCacheTtl: cdk.Duration.minutes(0),
+    //   }
+    // );
+    
     //post and get for movies/reviews
     const allMovieReviewsEndpoint = moviesEndpoint.addResource("reviews");
     allMovieReviewsEndpoint.addMethod(
