@@ -1,6 +1,6 @@
 import { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient} from "@aws-sdk/client-dynamodb";
+import {  DynamoDBDocumentClient, ScanCommand  } from "@aws-sdk/lib-dynamodb";
 
 const ddbDocClient = createDDbDocClient();
 
@@ -20,17 +20,15 @@ if (!reviewerName) {
   };
 }
 
-    const commandInput = {
-      TableName: process.env.TABLE_NAME,
-      KeyConditionExpression: "reviewerName = :r",
-      ExpressionAttributeValues: {
-        ":r": reviewerName,
-      },
-    };
-
     const commandOutput = await ddbDocClient.send(
-        new QueryCommand(commandInput)
-        );
+        new ScanCommand({
+        TableName: process.env.TABLE_NAME,
+        FilterExpression: "reviewerName = :r",
+        ExpressionAttributeValues: {
+            ":r": reviewerName
+        },
+      })
+    );
 
     return {
       statusCode: 200,

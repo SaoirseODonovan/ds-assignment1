@@ -277,7 +277,7 @@ export class RestAPIStack extends cdk.Stack {
     const allReviewersEndpoint = allMovieReviewsEndpoint.addResource("{reviewerName}")
         allReviewersEndpoint.addMethod(
       "GET",
-      new apig.LambdaIntegration(getReviewByReviewerNameFn, { proxy: true })
+      new apig.LambdaIntegration(getAllReviewsByReviewerFn, { proxy: true })
     )
 
     const movieEndpoint = moviesEndpoint.addResource("{movieId}");
