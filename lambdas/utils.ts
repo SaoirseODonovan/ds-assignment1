@@ -6,8 +6,6 @@ import {
   } from "aws-lambda";
   
   import axios from "axios"
-  // const jwkToPem = require("jwk-to-pem");
-  // const jwt = require("jsonwebtoken");
   import jwt from 'jsonwebtoken'
   import jwkToPem from "jwk-to-pem";
   

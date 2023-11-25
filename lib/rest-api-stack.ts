@@ -18,10 +18,6 @@ export class AppApi extends Construct {
   constructor(scope: Construct, id: string, props: AppApiProps) {
     super(scope, id);
 
-// export class RestAPIStack extends cdk.Stack {
-//   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-//     super(scope, id, props);
-
     // Tables 
     const moviesTable = new dynamodb.Table(this, "MoviesTable", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -50,7 +46,6 @@ export class AppApi extends Construct {
         REGION: cdk.Aws.REGION,
       },
     };
-    
 
     const authorizerFn = new node.NodejsFunction(this, "AuthorizerFn", {
       ...appCommonFnProps,
@@ -195,7 +190,6 @@ export class AppApi extends Construct {
             },
           }
         );
-        
 
         new custom.AwsCustomResource(this, "moviesddbInitData", {
           onCreate: {
@@ -207,7 +201,7 @@ export class AppApi extends Construct {
                 [moviesTable.tableName]: generateBatch(movies),
               },
             },
-            physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"), //.of(Date.now().toString()),
+            physicalResourceId: custom.PhysicalResourceId.of("moviesddbInitData"),
           },
           policy: custom.AwsCustomResourcePolicy.fromSdkCalls({
             resources: [moviesTable.tableArn, movieReviewsTable.tableArn],
@@ -238,15 +232,6 @@ export class AppApi extends Construct {
       },
     });
 
-    // const appApi = new apig.RestApi(this, "AppApi", {
-    //   description: "App RestApi",
-    //   endpointTypes: [apig.EndpointType.REGIONAL],
-    //   defaultCorsPreflightOptions: {
-    //     allowOrigins: apig.Cors.ALL_ORIGINS,
-    //   },
-    // });
-
-    //
     const protectedRes = api.root.addResource("protected");
 
     const publicRes = api.root.addResource("public");
