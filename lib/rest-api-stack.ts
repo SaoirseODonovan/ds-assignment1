@@ -9,41 +9,20 @@ import { generateBatch } from "../shared/util";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import { movies, movieReviews} from "../seed/movies";
 // import { Aws } from "aws-cdk-lib";
-// import * as node from "aws-cdk-lib/aws-lambda-nodejs";
+import * as node from "aws-cdk-lib/aws-lambda-nodejs";
 
-// type AppApiProps = {
-//   userPoolId: string;
-//   userPoolClientId: string;
-// };
+type AppApiProps = {
+  userPoolId: string;
+  userPoolClientId: string;
+};
 
-// export class RestAPIStack extends Construct {
-//   constructor(scope: Construct, id: string, props: AppApiProps) {
-//     super(scope, id);
+export class AppApi extends Construct {
+  constructor(scope: Construct, id: string, props: AppApiProps) {
+    super(scope, id);
 
-export class RestAPIStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
-
-    // const appApi = new apig.RestApi(this, "AppApi", {
-    //   description: "App RestApi",
-    //   endpointTypes: [apig.EndpointType.REGIONAL],
-    //   defaultCorsPreflightOptions: {
-    //     allowOrigins: apig.Cors.ALL_ORIGINS,
-    //   },
-    // });
-
-    // const appCommonFnProps = {
-    //   architecture: lambda.Architecture.ARM_64,
-    //   timeout: cdk.Duration.seconds(10),
-    //   memorySize: 128,
-    //   runtime: lambda.Runtime.NODEJS_16_X,
-    //   handler: "handler",
-    //   environment: {
-    //     USER_POOL_ID: props.userPoolId,
-    //     CLIENT_ID: props.userPoolClientId,
-    //     REGION: cdk.Aws.REGION,
-    //   },
-    // };
+// export class RestAPIStack extends cdk.Stack {
+//   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+//     super(scope, id, props);
 
     // Tables 
     const moviesTable = new dynamodb.Table(this, "MoviesTable", {
@@ -60,6 +39,43 @@ export class RestAPIStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       tableName: "MovieReview",
     });
+
+    // const appApi = new apig.RestApi(this, "AppApi", {
+    //   description: "App RestApi",
+    //   endpointTypes: [apig.EndpointType.REGIONAL],
+    //   defaultCorsPreflightOptions: {
+    //     allowOrigins: apig.Cors.ALL_ORIGINS,
+    //   },
+    // });
+
+    const appCommonFnProps = {
+      architecture: lambda.Architecture.ARM_64,
+      timeout: cdk.Duration.seconds(10),
+      memorySize: 128,
+      runtime: lambda.Runtime.NODEJS_16_X,
+      handler: "handler",
+      environment: {
+        USER_POOL_ID: props.userPoolId,
+        CLIENT_ID: props.userPoolClientId,
+        REGION: cdk.Aws.REGION,
+      },
+    };
+    
+
+    const authorizerFn = new node.NodejsFunction(this, "AuthorizerFn", {
+      ...appCommonFnProps,
+      entry: "./lambdas/auth/authorizer.ts",
+    });
+
+    const requestAuthorizer = new apig.RequestAuthorizer(
+      this,
+      "RequestAuthorizer",
+      {
+        identitySources: [apig.IdentitySource.header("cookie")],
+        handler: authorizerFn,
+        resultsCacheTtl: cdk.Duration.minutes(0),
+      }
+    );
     
     // Functions 
     const getMovieByIdFn = new lambdanode.NodejsFunction(
@@ -245,21 +261,45 @@ export class RestAPIStack extends cdk.Stack {
         movieReviewsTable.grantReadWriteData(updateReviewContentFn)
 
             // REST API 
-    const api = new apig.RestApi(this, "RestAPI", {
-      description: "demo api",
-      deployOptions: {
-        stageName: "dev",
-      },
-      // 👇 enable CORS
+    // const api = new apig.RestApi(this, "RestAPI", {
+    //   description: "demo api",
+    //   deployOptions: {
+    //     stageName: "dev",
+    //   },
+    //   // 👇 enable CORS
+    //   defaultCorsPreflightOptions: {
+    //     allowHeaders: ["Content-Type", "X-Amz-Date"],
+    //     allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
+    //     allowCredentials: true,
+    //     allowOrigins: ["*"],
+    //   },
+    // });
+
+    const appApi = new apig.RestApi(this, "AppApi", {
+      description: "App RestApi",
+      endpointTypes: [apig.EndpointType.REGIONAL],
       defaultCorsPreflightOptions: {
-        allowHeaders: ["Content-Type", "X-Amz-Date"],
-        allowMethods: ["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],
-        allowCredentials: true,
-        allowOrigins: ["*"],
+        allowOrigins: apig.Cors.ALL_ORIGINS,
       },
     });
 
-    const moviesEndpoint = api.root.addResource("movies");
+    //
+    const protectedRes = appApi.root.addResource("protected");
+
+    const publicRes = appApi.root.addResource("public");
+
+    const protectedFn = new node.NodejsFunction(this, "ProtectedFn", {
+      ...appCommonFnProps,
+      entry: "./lambdas/protected.ts",
+    });
+
+    const publicFn = new node.NodejsFunction(this, "PublicFn", {
+      ...appCommonFnProps,
+      entry: "./lambdas/public.ts",
+    });
+    //
+
+    const moviesEndpoint = appApi.root.addResource("movies");
     moviesEndpoint.addMethod(
       "GET",
       new apig.LambdaIntegration(getAllMoviesFn, { proxy: true })
@@ -337,7 +377,13 @@ export class RestAPIStack extends cdk.Stack {
     //   "GET",
     //   new apig.LambdaIntegration(getReviewByReviewerNameFn, { proxy: true })
     // );
-        
-      }
+    protectedRes.addMethod("GET", new apig.LambdaIntegration(protectedFn), {
+      authorizer: requestAuthorizer,
+      authorizationType: apig.AuthorizationType.CUSTOM,
+    });
+
+    publicRes.addMethod("GET", new apig.LambdaIntegration(publicFn));
+  }
+      
     }
     
