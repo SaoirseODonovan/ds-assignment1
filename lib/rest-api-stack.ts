@@ -6,6 +6,7 @@ import * as custom from "aws-cdk-lib/custom-resources";
 import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import * as apig from "aws-cdk-lib/aws-apigateway";
+import * as iam from "aws-cdk-lib/aws-iam"
 import { movies, movieReviews} from "../seed/movies";
 import * as node from "aws-cdk-lib/aws-lambda-nodejs";
 
@@ -191,6 +192,23 @@ export class AppApi extends Construct {
           }
         );
 
+        const getTranslationFn = new lambdanode.NodejsFunction(
+          this,
+          "GetTranslationFn",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/translate.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: movieReviewsTable.tableName,
+              REGION: 'eu-west-1',
+            },
+          }
+        );
+        
+
         new custom.AwsCustomResource(this, "moviesddbInitData", {
           onCreate: {
             service: "DynamoDB",
@@ -217,6 +235,14 @@ export class AppApi extends Construct {
         movieReviewsTable.grantReadData(getAllReviewsByReviewerFn)
         movieReviewsTable.grantReadData(getReviewsByMovieFn)
         movieReviewsTable.grantReadWriteData(updateReviewContentFn)
+        movieReviewsTable.grantReadWriteData(getTranslationFn)
+
+        const translatePolicyStatement = new iam.PolicyStatement({
+          actions: ["translate:TranslateText"],
+          resources: ["*"],
+        });
+  
+        getTranslationFn.addToRolePolicy(translatePolicyStatement)
 
     const api = new apig.RestApi(this, "RestAPI", {
       description: "demo api",
@@ -309,6 +335,14 @@ export class AppApi extends Construct {
       }
     );
 
+    const translateReviewEndpoint = movieReviewersNameEndpoint.addResource("translation");
+      translateReviewEndpoint.addMethod(
+        "GET",
+        new apig.LambdaIntegration(getTranslationFn, { proxy: true })
+      )
+        
+      }
+
     protectedRes.addMethod("GET", new apig.LambdaIntegration(protectedFn), {
       authorizer: requestAuthorizer,
       authorizationType: apig.AuthorizationType.CUSTOM,
@@ -317,5 +351,6 @@ export class AppApi extends Construct {
     publicRes.addMethod("GET", new apig.LambdaIntegration(publicFn));
   }
       
+
     }
     
