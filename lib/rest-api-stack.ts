@@ -30,7 +30,7 @@ export class AppApi extends Construct {
     const movieReviewsTable = new dynamodb.Table(this, "MovieReviewsTable", {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
       partitionKey: { name: "movieId", type: dynamodb.AttributeType.NUMBER },
-      sortKey: { name: "reviewDate", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "reviewerName", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       tableName: "MovieReview",
     });
@@ -340,8 +340,7 @@ export class AppApi extends Construct {
         "GET",
         new apig.LambdaIntegration(getTranslationFn, { proxy: true })
       )
-        
-      }
+
 
     protectedRes.addMethod("GET", new apig.LambdaIntegration(protectedFn), {
       authorizer: requestAuthorizer,
@@ -351,6 +350,5 @@ export class AppApi extends Construct {
     publicRes.addMethod("GET", new apig.LambdaIntegration(publicFn));
   }
       
-
-    }
+}
     
