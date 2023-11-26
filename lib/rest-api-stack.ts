@@ -8,6 +8,9 @@ import { Construct } from "constructs";
 import { generateBatch } from "../shared/util";
 import * as apig from "aws-cdk-lib/aws-apigateway";
 import { movies, movieCasts, movieReviews} from "../seed/movies";
+import * as iam from "aws-cdk-lib/aws-iam"
+
+
 
 export class RestAPIStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -187,6 +190,22 @@ export class RestAPIStack extends cdk.Stack {
             },
           }
         );
+
+        const getTranslationFn = new lambdanode.NodejsFunction(
+          this,
+          "GetTranslationFn",
+          {
+            architecture: lambda.Architecture.ARM_64,
+            runtime: lambda.Runtime.NODEJS_16_X,
+            entry: `${__dirname}/../lambdas/translate.ts`,
+            timeout: cdk.Duration.seconds(10),
+            memorySize: 128,
+            environment: {
+              TABLE_NAME: movieReviewsTable.tableName,
+              REGION: 'eu-west-1',
+            },
+          }
+        );
         
 
         new custom.AwsCustomResource(this, "moviesddbInitData", {
@@ -245,6 +264,14 @@ export class RestAPIStack extends cdk.Stack {
         movieReviewsTable.grantReadWriteData(getAllReviewsByReviewerFn)
         movieReviewsTable.grantReadWriteData(getReviewsByMovieFn)
         movieReviewsTable.grantReadWriteData(updateReviewContentFn)
+        movieReviewsTable.grantReadWriteData(getTranslationFn)
+
+        const translatePolicyStatement = new iam.PolicyStatement({
+          actions: ["translate:TranslateText"],
+          resources: ["*"],
+        });
+  
+        getTranslationFn.addToRolePolicy(translatePolicyStatement)
 
             // REST API 
     const api = new apig.RestApi(this, "RestAPI", {
@@ -330,6 +357,12 @@ export class RestAPIStack extends cdk.Stack {
     //   "GET",
     //   new apig.LambdaIntegration(getReviewByReviewerNameFn, { proxy: true })
     // );
+
+    const translateReviewEndpoint = movieReviewersNameEndpoint.addResource("translation");
+      translateReviewEndpoint.addMethod(
+        "GET",
+        new apig.LambdaIntegration(getTranslationFn, { proxy: true })
+      )
         
       }
     }
