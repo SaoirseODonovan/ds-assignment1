@@ -16,6 +16,7 @@ e.g.
 + PUT /movies/{movieId}/reviews/{reviewerName} - Update the text of a review. (movie ID and reviewer username uniquely identify a review item).
 + GET /movies/{movieId}/reviews/{year} - Get the review(s) for the movie with the specified movie ID and were written in a specified year.
 + GET /movies/reviews/{reviewerName} - Get all the reviews written by a specific reviewer.
++ GET /movies/{movieId}/reviews/{reviewerName}/translation?language=code - Get a translated version of the review for the movie with the specified movie ID and written by the named reviewer.
 
 [There are some additional endpoints for the Auth API.]
 
@@ -31,7 +32,7 @@ e.g.
 
 [Rest API]
 ![](./images/image4-ds.png)
-![](./images/image5-ds.png)
+![](./images/image6-ds.png)
 
 
 ### Authentication..
@@ -50,6 +51,10 @@ e.g.
 
 [ Briefly explain any aspects of your submission that required independent research and learning, i.e. not covered in the lectures/labs. State the files that have evidence of this.]
 
+For the implementation of the translate functionality in the lambdas/translate.ts file and some additions in the lib/rest-api-stack.ts files, I used independent learning. The resources used to get the translation of the review involved watching the video highlighted in the assignment specification for a demonstartion on how to use Amazon Translate. I watched that video and also made use of its transcrupt that is structured in a report format. 
 
++ Links: 
+https://www.youtube.com/watch?v=xdWpbr1DZHQ&t=1288s
+https://completecoding.io/typescript-translation-api/
 
 State any other evidence of independent learning achieved while completing this assignment.
