@@ -53,8 +53,13 @@ e.g.
 
 For the implementation of the translate functionality in the lambdas/translate.ts file and some additions in the lib/rest-api-stack.ts files, I used independent learning. The resources used to get the translation of the review involved watching the video highlighted in the assignment specification for a demonstartion on how to use Amazon Translate. I watched that video and also made use of its transcrupt that is structured in a report format. 
 
-+ Links: 
+State any other evidence of independent learning achieved while completing this assignment.
+
++ Links for translate: 
 https://www.youtube.com/watch?v=xdWpbr1DZHQ&t=1288s
 https://completecoding.io/typescript-translation-api/
 
-State any other evidence of independent learning achieved while completing this assignment.
+I also went tthe following link to learn more about regular expressiosn for getting the year that the review was written in. This was implemented in the lambdas/getReviewByReviewerName.ts file.
+
++ Links for regex:
+https://support.abbyy.com/hc/en-us/articles/360017269980-Regular-expressions
